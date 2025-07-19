@@ -27,8 +27,8 @@ After years of manually copying SSH keys and editing sudoers files across server
 # Install from PyPI (recommended)
 pip install addy
 
-# Or quick install script
-curl -fsSL https://raw.githubusercontent.com/abhinavs/addy/main/install.sh | sudo bash
+# Or quick install script  
+curl -fsSL https://raw.githubusercontent.com/abhinavs/addy/main/install.sh | bash
 
 # Or install from source
 git clone https://github.com/abhinavs/addy.git

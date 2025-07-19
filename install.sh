@@ -48,31 +48,22 @@ check_git() {
 }
 
 install_addy() {
-    info "Installing addy $ADDY_VERSION..."
+    info "Installing addy from PyPI..."
     
     # Check if pip is available
     if ! python3 -m pip --version &> /dev/null; then
         error "pip is required but not available"
     fi
     
-    # Create temporary directory
-    local temp_dir=$(mktemp -d)
-    trap "rm -rf $temp_dir" EXIT
-    
-    # Download or use local source
-    if [[ -f "setup.py" && -d "addy" ]]; then
-        info "Installing from local source..."
-        pip3 install -e .
-    else
-        info "Installing from PyPI..."
-        # Note: This would be the actual PyPI command when published
-        # pip3 install addy
-        error "PyPI installation not yet available. Please install from source."
+    # Install from PyPI
+    info "Installing addy package..."
+    if ! python3 -m pip install addy; then
+        error "Failed to install addy from PyPI"
     fi
     
     # Verify installation
     if ! command -v addy &> /dev/null; then
-        error "Installation failed - addy command not found"
+        error "Installation failed - addy command not found in PATH"
     fi
     
     info "Installation successful!"
