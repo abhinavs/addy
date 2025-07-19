@@ -2,6 +2,16 @@
 
 All notable changes to addy will be documented in this file.
 
+## [1.0.1] - 2025-07-19
+
+### Changed
+- Updated install script to use PyPI package instead of source installation
+- Simplified installation process for end users
+- Removed unnecessary complexity from install.sh
+
+### Fixed
+- Install script now properly installs from published PyPI package
+
 ## [1.0.0] - 2025-07-19
 
 ### Added
