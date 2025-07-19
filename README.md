@@ -303,4 +303,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ by [@abhinavs](https://github.com/abhinavs) for system administrators who believe user management shouldn't be painful.**
 
-*Inspired by the elegance of Yahoo's yinst package manager - because managing people should be as simple as managing packages.*
+*Inspired by the elegance of Yahoo's yinst package manager - because granting server access should be as simple as installing packages.*
