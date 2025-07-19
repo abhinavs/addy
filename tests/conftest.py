@@ -62,30 +62,30 @@ def mock_git_repo(temp_dir):
     """Create a mock Git repository for testing."""
     repo_dir = temp_dir / "test_repo"
     repo_dir.mkdir()
-    
+
     # Initialize Git repo
     repo = git.Repo.init(repo_dir)
-    
+
     # Create users directory and sample key
     users_dir = repo_dir / "users"
     users_dir.mkdir()
-    
+
     # Add sample user key
     sample_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7vbqajDhZh7Z8QJ5L8F5K6H6L8F5K6H6L test@example.com"
     (users_dir / "alice.pub").write_text(sample_key)
     (users_dir / "bob.pub").write_text(sample_key)
-    
+
     # Add and commit
     repo.index.add([str(users_dir / "alice.pub"), str(users_dir / "bob.pub")])
     repo.index.commit("Initial commit with test users")
-    
+
     return repo_dir
 
 
 @pytest.fixture
 def mock_subprocess():
     """Mock subprocess for testing system commands."""
-    with patch('subprocess.run') as mock_run:
+    with patch("subprocess.run") as mock_run:
         mock_run.return_value.returncode = 0
         mock_run.return_value.stdout = ""
         mock_run.return_value.stderr = ""
@@ -95,9 +95,8 @@ def mock_subprocess():
 @pytest.fixture
 def mock_pwd():
     """Mock pwd module for testing user operations."""
-    with patch('pwd.getpwnam') as mock_getpwnam, \
-         patch('pwd.getpwall') as mock_getpwall:
-        
+    with patch("pwd.getpwnam") as mock_getpwnam, patch("pwd.getpwall") as mock_getpwall:
+
         # Mock user info
         mock_user = Mock()
         mock_user.pw_name = "testuser"
@@ -105,19 +104,19 @@ def mock_pwd():
         mock_user.pw_gid = 1000
         mock_user.pw_dir = "/home/testuser"
         mock_user.pw_shell = "/bin/bash"
-        
+
         mock_getpwnam.return_value = mock_user
         mock_getpwall.return_value = [mock_user]
-        
+
         yield mock_getpwnam, mock_getpwall
 
 
 @pytest.fixture
 def mock_os_operations():
     """Mock OS operations for testing."""
-    with patch('os.chown') as mock_chown, \
-         patch('os.chmod') as mock_chmod, \
-         patch('os.geteuid') as mock_geteuid:
-        
+    with patch("os.chown") as mock_chown, patch("os.chmod") as mock_chmod, patch(
+        "os.geteuid"
+    ) as mock_geteuid:
+
         mock_geteuid.return_value = 0  # Simulate root user
         yield mock_chown, mock_chmod, mock_geteuid
