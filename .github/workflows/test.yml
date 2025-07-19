@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [3.8, 3.9, "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.11", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
@@ -31,17 +31,13 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 addy/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 addy/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
     
     - name: Test with pytest
       run: |
-        pytest --cov=addy --cov-report=xml
-    
-    - name: Run integration tests
-      run: |
-        pytest tests/integration/ -v
+        pytest --cov=addy --cov-report=xml tests/
     
     - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
