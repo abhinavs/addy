@@ -62,7 +62,10 @@ class TestGitRepository:
 
         mock_repo.remote.assert_called_with("origin")
         mock_remote.fetch.assert_called_once()
-        mock_repo.git.reset.assert_called_with("--hard", "origin/main")
+        # Check that reset was called with the correct arguments (ignoring env)
+        assert mock_repo.git.reset.called
+        args, kwargs = mock_repo.git.reset.call_args
+        assert args == ("--hard", "origin/main")
 
     def test_get_public_key_valid(self, config_manager, git_repo, sample_ssh_key):
         """Test getting valid public key."""

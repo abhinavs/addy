@@ -17,19 +17,32 @@ class SudoManager:
 
     SUDOERS_DIR = Path("/etc/sudoers.d")
 
-    def __init__(self):
-        """Initialize sudo manager."""
-        pass
+    def __init__(self, user_manager=None):
+        """Initialize sudo manager.
 
-    def grant_sudo(self, username: str) -> None:
+        Args:
+            user_manager: UserManager instance for user operations
+        """
+        self.user_manager = user_manager
+
+    def grant_sudo(self, username: str, create_user: bool = False) -> None:
         """Grant passwordless sudo access to a user.
 
         Args:
             username: Username to grant sudo access
+            create_user: If True, create the user if they don't exist
 
         Raises:
-            RuntimeError: If sudo grant fails
+            RuntimeError: If sudo grant fails or user doesn't exist
         """
+        # Check if user exists and create if requested
+        if self.user_manager and not self.user_manager.user_exists(username):
+            if create_user:
+                logger.info(f"User {username} does not exist, creating user first")
+                self.user_manager.create_user(username)
+            else:
+                raise RuntimeError(f"User {username} does not exist")
+
         sudoers_file = self.SUDOERS_DIR / username
 
         if sudoers_file.exists():

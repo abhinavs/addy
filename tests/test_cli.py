@@ -22,7 +22,7 @@ class TestCLI:
         result = runner.invoke(cli, ["version"])
 
         assert result.exit_code == 0
-        assert "addy 1.0.0" in result.output
+        assert "addy 1.0.2" in result.output
 
     def test_help_command(self):
         """Test help command."""
@@ -167,18 +167,23 @@ class TestCLI:
 
         assert result.exit_code == 0
         mock_git.sync.assert_called_once()
-        mock_user.user_exists.assert_called_once_with("alice")
-        mock_sudo.grant_sudo.assert_called_once_with("alice")
+        mock_sudo.grant_sudo.assert_called_once_with("alice", create_user=True)
         assert "installed successfully" in result.output
 
     @patch("os.geteuid")
+    @patch("addy.cli.SudoManager")
     @patch("addy.cli.UserManager")
     @patch("addy.cli.GitRepository")
     @patch("addy.cli.ConfigManager")
-    def test_install_sudo_user_not_exists(
-        self, mock_config_class, mock_git_class, mock_user_class, mock_geteuid
+    def test_install_sudo_creates_user_if_not_exists(
+        self,
+        mock_config_class,
+        mock_git_class,
+        mock_user_class,
+        mock_sudo_class,
+        mock_geteuid,
     ):
-        """Test installing sudo package when user doesn't exist."""
+        """Test installing sudo package creates user if they don't exist."""
         mock_geteuid.return_value = 0  # Root user
 
         # Mock dependencies
@@ -189,14 +194,18 @@ class TestCLI:
         mock_git_class.return_value = mock_git
 
         mock_user = Mock()
-        mock_user.user_exists.return_value = False
         mock_user_class.return_value = mock_user
+
+        mock_sudo = Mock()
+        mock_sudo_class.return_value = mock_sudo
 
         runner = CliRunner()
         result = runner.invoke(cli, ["install", "sudo/alice"])
 
-        assert result.exit_code == 1
-        assert "does not exist" in result.output
+        assert result.exit_code == 0
+        mock_git.sync.assert_called_once()
+        mock_sudo.grant_sudo.assert_called_once_with("alice", create_user=True)
+        assert "installed successfully" in result.output
 
     @patch("os.geteuid")
     @patch("addy.cli.UserManager")
@@ -216,9 +225,13 @@ class TestCLI:
 
     @patch("os.geteuid")
     @patch("addy.cli.SudoManager")
-    def test_remove_sudo_package(self, mock_sudo_class, mock_geteuid):
+    @patch("addy.cli.UserManager")
+    def test_remove_sudo_package(self, mock_user_class, mock_sudo_class, mock_geteuid):
         """Test removing sudo package."""
         mock_geteuid.return_value = 0  # Root user
+
+        mock_user = Mock()
+        mock_user_class.return_value = mock_user
 
         mock_sudo = Mock()
         mock_sudo_class.return_value = mock_sudo
@@ -272,7 +285,7 @@ class TestCLI:
         with pytest.raises(ValueError, match="Invalid package format"):
             _parse_package("invalid")
 
-        with pytest.raises(ValueError, match="Invalid package format"):
+        with pytest.raises(ValueError, match="Invalid username"):
             _parse_package("user/alice/extra")
 
         with pytest.raises(ValueError, match="Package type must be"):

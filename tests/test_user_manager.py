@@ -36,12 +36,18 @@ class TestUserManager:
     ):
         """Test successful user creation."""
         # First call (user_exists) raises KeyError, second call succeeds
-        mock_getpwnam.side_effect = [KeyError("User not found"), Mock()]
+        mock_user = Mock()
+        mock_user.pw_dir = "/home/newuser"  # Use real string path
+        mock_user.pw_uid = 1000
+        mock_user.pw_gid = 1000
+        mock_getpwnam.side_effect = [KeyError("User not found"), mock_user]
         mock_subprocess.return_value.returncode = 0
         mock_subprocess.return_value.stdout = ""
 
-        user_manager = UserManager()
-        user_manager.create_user("newuser")
+        with patch("pathlib.Path.mkdir") as mock_mkdir, patch("os.chown") as mock_chown:
+
+            user_manager = UserManager()
+            user_manager.create_user("newuser")
 
         mock_subprocess.assert_called()
         args = mock_subprocess.call_args[0][0]
@@ -123,7 +129,7 @@ class TestUserManager:
 
         with patch("pathlib.Path.exists", return_value=True), patch(
             "pathlib.Path.mkdir"
-        ):
+        ), patch("os.chown"), patch("os.chmod"):
 
             user_manager = UserManager()
             user_manager.install_ssh_key("testuser", test_key)
@@ -231,7 +237,7 @@ class TestUserManager:
         """Test listing users with SSH access."""
         # Mock multiple users
         mock_users = []
-        for i, name in enumerate(["user1", "user2", "systemuser"], 999):
+        for i, name in enumerate(["user1", "user2", "systemuser"]):
             mock_user = Mock()
             mock_user.pw_name = name
             mock_user.pw_uid = 1000 + i
@@ -240,12 +246,11 @@ class TestUserManager:
 
         mock_getpwall.return_value = mock_users
 
-        with patch("pathlib.Path.exists") as mock_exists:
-            # Only user1 and user2 have SSH access
-            mock_exists.side_effect = lambda path: "user1" in str(
-                path
-            ) or "user2" in str(path)
+        def mock_path_exists(self):
+            path_str = str(self)
+            return "user1" in path_str or "user2" in path_str
 
+        with patch("pathlib.Path.exists", mock_path_exists):
             user_manager = UserManager()
             users = user_manager.list_users_with_ssh()
 

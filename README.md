@@ -1,8 +1,8 @@
-# addy 🧑‍💻🔑 – Git-Driven SSH Access Control
+# addy 🧑‍💻🔑 – Git-driven SSH Access Control
 
 **Simple user access management for Linux servers. Like `apt install` but for people.**
 
-*Inspired by Yahoo's internal yinst package manager that made server user management effortless.*
+_Inspired by Yahoo's internal yinst package manager that made server user management effortless._
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -27,7 +27,7 @@ After years of manually copying SSH keys and editing sudoers files across server
 # Install from PyPI (recommended)
 pip install addy
 
-# Or quick install script  
+# Or quick install script
 curl -fsSL https://raw.githubusercontent.com/abhinavs/addy/main/install.sh | bash
 
 # Or install from source
@@ -93,6 +93,7 @@ When you run `addy install sudo/alice`:
 ## 📋 Features
 
 ### Core Functionality
+
 - ✅ **User Management**: Create users and install SSH keys
 - ✅ **Sudo Management**: Grant/revoke passwordless sudo access
 - ✅ **Git Integration**: Pull keys from public or private repositories
@@ -100,12 +101,14 @@ When you run `addy install sudo/alice`:
 - ✅ **Idempotent Operations**: Safe to run repeatedly
 
 ### Security Features
+
 - 🔐 **SSH Key Authentication**: No password-based access
 - 🛡️ **Sudoers Validation**: Uses `visudo` to prevent syntax errors
 - 🔍 **Permission Management**: Proper file ownership and permissions
 - 📝 **Audit Trail**: Git history shows who granted access when
 
 ### Developer Experience
+
 - 🧪 **Comprehensive Testing**: Unit tests with mocking
 - 📚 **Clear Documentation**: Examples and troubleshooting guides
 - 🔧 **Easy Installation**: One-command setup
@@ -174,17 +177,18 @@ your-addy-users-repo/
 ```
 
 ### Supported Key Types
+
 - `ssh-rsa` (RSA keys)
 - `ssh-ed25519` (Ed25519 keys)
 - `ecdsa-sha2-*` (ECDSA keys)
 
 ## ⚙️ Configuration
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `git-repo` | Git repository URL | *Required* |
-| `git-branch` | Git branch to use | `main` |
-| `ssh-key-path` | SSH private key for Git access | None |
+| Setting        | Description                    | Default    |
+| -------------- | ------------------------------ | ---------- |
+| `git-repo`     | Git repository URL             | _Required_ |
+| `git-branch`   | Git branch to use              | `main`     |
+| `ssh-key-path` | SSH private key for Git access | None       |
 
 ## 🧪 Testing
 
@@ -219,6 +223,7 @@ pytest -m "not slow"    # Skip slow tests
 ### Common Issues
 
 **Git clone/pull fails:**
+
 ```bash
 # Check your repository URL
 sudo addy config get git-repo
@@ -228,6 +233,7 @@ sudo ls -la /etc/addy/deploy_key
 ```
 
 **User creation fails:**
+
 ```bash
 # Check if user already exists
 id username
@@ -237,6 +243,7 @@ sudo addy sync
 ```
 
 **SSH key validation errors:**
+
 ```bash
 # Test key format locally
 ssh-keygen -l -f /path/to/key.pub
@@ -303,4 +310,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ by [@abhinavs](https://github.com/abhinavs) for system administrators who believe user management shouldn't be painful.**
 
-*Inspired by the elegance of Yahoo's yinst package manager - because granting server access should be as simple as installing packages.*
+_Inspired by the elegance of Yahoo's yinst package manager - because granting server access should be as simple as installing packages._

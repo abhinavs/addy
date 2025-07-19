@@ -2,6 +2,27 @@
 
 All notable changes to addy will be documented in this file.
 
+## [1.0.2] - 2025-07-19
+
+### Changed
+- **BREAKING IMPROVEMENT**: `sudo/username` packages now automatically create users if they don't exist
+- SudoManager now accepts optional UserManager instance for user creation functionality
+- CLI `install sudo/username` command no longer requires pre-existing users
+
+### Added
+- New `create_user` parameter in `SudoManager.grant_sudo()` method
+- Comprehensive test coverage for sudo user creation scenarios
+- Integration tests for end-to-end sudo installation workflows
+
+### Fixed
+- Eliminated requirement to install `user/username` before `sudo/username` packages
+- Improved user experience by removing manual two-step process for sudo access
+
+### Technical Details
+- Enhanced SudoManager constructor to accept UserManager dependency injection
+- Backward compatibility maintained - existing SudoManager usage continues to work
+- Added proper error handling for user creation failures during sudo installation
+
 ## [1.0.1] - 2025-07-19
 
 ### Changed

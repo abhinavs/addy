@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="addy",
-    version="1.0.1",
+    version="1.0.2",
     author="Abhinav Saxena",
     author_email="abhinav@apiclabs.com",
     description="Simple user access management for Linux servers. Like apt install but for people.",

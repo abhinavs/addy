@@ -106,7 +106,7 @@ def install(ctx, package: str):
         config_manager = ConfigManager()
         git_repo = GitRepository(config_manager)
         user_manager = UserManager()
-        sudo_manager = SudoManager()
+        sudo_manager = SudoManager(user_manager)
 
         click.echo(f"Installing package: {package}")
 
@@ -122,16 +122,8 @@ def install(ctx, package: str):
             user_manager.install_ssh_key(username, public_key)
 
         elif package_type == "sudo":
-            # Check if user exists
-            if not user_manager.user_exists(username):
-                click.echo(
-                    f"Error: User {username} does not exist. Install user/{username} first",
-                    err=True,
-                )
-                sys.exit(1)
-
-            # Grant sudo access
-            sudo_manager.grant_sudo(username)
+            # Grant sudo access (create user if needed)
+            sudo_manager.grant_sudo(username, create_user=True)
 
         click.echo(f"Package {package} installed successfully")
 
@@ -151,7 +143,7 @@ def remove(ctx, package: str):
         package_type, username = _parse_package(package)
 
         user_manager = UserManager()
-        sudo_manager = SudoManager()
+        sudo_manager = SudoManager(user_manager)
 
         click.echo(f"Removing package: {package}")
 
