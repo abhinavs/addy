@@ -2,6 +2,13 @@
 
 All notable changes to addy will be documented in this file.
 
+## [1.0.3] - 2025-07-19
+
+### Added
+
+- **NEW**: `--remove-user` flag for `sudo addy remove sudo/username` to also remove SSH access
+- **NEW**: `--delete-account` flag for both `sudo addy remove sudo/username` and `sudo addy remove user/username` to completely delete user account
+
 ## [1.0.2] - 2025-07-19
 
 ### Changed

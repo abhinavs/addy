@@ -83,11 +83,15 @@ class SudoManager:
                     pass
             raise RuntimeError(f"Failed to grant sudo access to {username}: {e}")
 
-    def revoke_sudo(self, username: str) -> None:
+    def revoke_sudo(
+        self, username: str, remove_ssh: bool = False, delete_user: bool = False
+    ) -> None:
         """Revoke sudo access from a user.
 
         Args:
             username: Username to revoke sudo access from
+            remove_ssh: If True, also remove SSH access
+            delete_user: If True, also delete the user account completely
         """
         sudoers_file = self.SUDOERS_DIR / username
 
@@ -103,6 +107,15 @@ class SudoManager:
 
         except (OSError, PermissionError) as e:
             raise RuntimeError(f"Failed to remove sudo access for {username}: {e}")
+
+        # Handle additional removal operations
+        if (remove_ssh or delete_user) and self.user_manager:
+            logger.info(f"Removing SSH access for user {username}")
+            self.user_manager.remove_ssh_access(username)
+
+        if delete_user and self.user_manager:
+            logger.info(f"Deleting user account: {username}")
+            self.user_manager.delete_user(username)
 
     def has_sudo_access(self, username: str) -> bool:
         """Check if a user has sudo access.

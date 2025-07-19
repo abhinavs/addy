@@ -277,3 +277,58 @@ class TestUserManager:
         assert user_manager.validate_username("user@invalid") is False
         assert user_manager.validate_username("user space") is False
         assert user_manager.validate_username("a" * 33) is False  # Too long
+
+    @patch("subprocess.run")
+    @patch("pwd.getpwnam")
+    def test_delete_user_success(self, mock_getpwnam, mock_subprocess):
+        """Test successful user deletion."""
+        # Mock user exists
+        mock_user = Mock()
+        mock_user.pw_name = "testuser"
+        mock_getpwnam.return_value = mock_user
+        mock_subprocess.return_value.returncode = 0
+        mock_subprocess.return_value.stdout = ""
+
+        user_manager = UserManager()
+        user_manager.delete_user("testuser")
+
+        mock_subprocess.assert_called_once()
+        args = mock_subprocess.call_args[0][0]
+        assert "userdel" in args
+        assert "-r" in args
+        assert "testuser" in args
+
+    @patch("pwd.getpwnam")
+    def test_delete_user_not_exists(self, mock_getpwnam):
+        """Test deleting user that doesn't exist."""
+        mock_getpwnam.side_effect = KeyError("User not found")
+
+        user_manager = UserManager()
+        # Should not raise exception
+        user_manager.delete_user("nonexistent")
+
+    @patch("subprocess.run")
+    @patch("pwd.getpwnam")
+    def test_delete_user_failure_with_ssh_fallback(
+        self, mock_getpwnam, mock_subprocess
+    ):
+        """Test user deletion failure with SSH removal fallback."""
+        # Mock user exists
+        mock_user = Mock()
+        mock_user.pw_name = "testuser"
+        mock_user.pw_dir = "/home/testuser"
+        mock_getpwnam.return_value = mock_user
+
+        # Mock userdel failure
+        mock_subprocess.side_effect = subprocess.CalledProcessError(
+            1, "userdel", stderr="User busy"
+        )
+
+        with patch.object(UserManager, "remove_ssh_access") as mock_remove_ssh:
+            user_manager = UserManager()
+
+            with pytest.raises(RuntimeError, match="Failed to delete user"):
+                user_manager.delete_user("testuser")
+
+            # Should attempt SSH removal as fallback
+            mock_remove_ssh.assert_called_once_with("testuser")

@@ -276,3 +276,38 @@ class UserManager:
             return False
 
         return True
+
+    def delete_user(self, username: str) -> None:
+        """Delete a user account completely.
+
+        Args:
+            username: Username to delete
+
+        Raises:
+            RuntimeError: If user deletion fails
+        """
+        if not self.user_exists(username):
+            logger.warning(f"User {username} does not exist")
+            return
+
+        logger.info(f"Deleting user account: {username}")
+
+        try:
+            # Use userdel with -r flag to remove home directory
+            cmd = ["userdel", "-r", username]
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            logger.debug(f"userdel output: {result.stdout}")
+            logger.info(f"User {username} deleted successfully")
+
+        except subprocess.CalledProcessError as e:
+            # If userdel fails, still try to remove SSH access as fallback
+            try:
+                self.remove_ssh_access(username)
+                logger.warning(
+                    f"Failed to delete user {username} but removed SSH access: {e.stderr}"
+                )
+            except Exception:
+                pass
+            raise RuntimeError(f"Failed to delete user {username}: {e.stderr}")
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error deleting user {username}: {e}")

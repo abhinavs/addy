@@ -22,7 +22,7 @@ class TestCLI:
         result = runner.invoke(cli, ["version"])
 
         assert result.exit_code == 0
-        assert "addy 1.0.2" in result.output
+        assert "addy 1.0.3" in result.output
 
     def test_help_command(self):
         """Test help command."""
@@ -240,7 +240,9 @@ class TestCLI:
         result = runner.invoke(cli, ["remove", "sudo/alice"])
 
         assert result.exit_code == 0
-        mock_sudo.revoke_sudo.assert_called_once_with("alice")
+        mock_sudo.revoke_sudo.assert_called_once_with(
+            "alice", remove_ssh=False, delete_user=False
+        )
         assert "removed successfully" in result.output
 
     @patch("os.geteuid")
@@ -305,3 +307,79 @@ class TestCLI:
         with patch("os.geteuid", return_value=1000):
             with pytest.raises(SystemExit):
                 check_root()
+
+    @patch("os.geteuid")
+    @patch("addy.cli.SudoManager")
+    @patch("addy.cli.UserManager")
+    def test_remove_sudo_with_remove_user_flag(
+        self, mock_user_class, mock_sudo_class, mock_geteuid
+    ):
+        """Test removing sudo package with --remove-user flag."""
+        mock_geteuid.return_value = 0  # Root user
+
+        mock_user = Mock()
+        mock_user_class.return_value = mock_user
+
+        mock_sudo = Mock()
+        mock_sudo_class.return_value = mock_sudo
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["remove", "sudo/alice", "--remove-user"])
+
+        assert result.exit_code == 0
+        mock_sudo.revoke_sudo.assert_called_once_with(
+            "alice", remove_ssh=True, delete_user=False
+        )
+        assert "removed successfully" in result.output
+
+    @patch("os.geteuid")
+    @patch("addy.cli.SudoManager")
+    @patch("addy.cli.UserManager")
+    def test_remove_sudo_with_delete_account_flag(
+        self, mock_user_class, mock_sudo_class, mock_geteuid
+    ):
+        """Test removing sudo package with --delete-account flag."""
+        mock_geteuid.return_value = 0  # Root user
+
+        mock_user = Mock()
+        mock_user_class.return_value = mock_user
+
+        mock_sudo = Mock()
+        mock_sudo_class.return_value = mock_sudo
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["remove", "sudo/alice", "--delete-account"])
+
+        assert result.exit_code == 0
+        mock_sudo.revoke_sudo.assert_called_once_with(
+            "alice", remove_ssh=True, delete_user=True
+        )
+        assert "removed successfully" in result.output
+
+    @patch("os.geteuid")
+    def test_remove_user_with_remove_user_flag_error(self, mock_geteuid):
+        """Test that --remove-user flag is rejected for user packages."""
+        mock_geteuid.return_value = 0  # Root user
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["remove", "user/alice", "--remove-user"])
+
+        assert result.exit_code == 1
+        assert "can only be used with sudo packages" in result.output
+
+    @patch("os.geteuid")
+    @patch("addy.cli.UserManager")
+    def test_remove_user_with_delete_account_flag(self, mock_user_class, mock_geteuid):
+        """Test removing user package with --delete-account flag."""
+        mock_geteuid.return_value = 0  # Root user
+
+        mock_user = Mock()
+        mock_user_class.return_value = mock_user
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["remove", "user/alice", "--delete-account"])
+
+        assert result.exit_code == 0
+        mock_user.remove_ssh_access.assert_called_once_with("alice")
+        mock_user.delete_user.assert_called_once_with("alice")
+        assert "removed successfully" in result.output

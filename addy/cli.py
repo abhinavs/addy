@@ -134,9 +134,25 @@ def install(ctx, package: str):
 
 @cli.command()
 @click.argument("package")
+@click.option(
+    "--remove-user",
+    is_flag=True,
+    help="Also remove SSH access (for sudo packages only)",
+)
+@click.option(
+    "--delete-account", is_flag=True, help="Also delete the user account completely"
+)
 @click.pass_context
-def remove(ctx, package: str):
-    """Remove a user or sudo package"""
+def remove(ctx, package: str, remove_user: bool, delete_account: bool):
+    """Remove a user or sudo package
+
+    Examples:
+      sudo addy remove user/alice                    # Remove SSH access only
+      sudo addy remove user/alice --delete-account  # Remove SSH access + delete account
+      sudo addy remove sudo/alice                    # Remove sudo only
+      sudo addy remove sudo/alice --remove-user     # Remove sudo + SSH access
+      sudo addy remove sudo/alice --delete-account  # Remove sudo + SSH + account
+    """
     check_root()
 
     try:
@@ -145,12 +161,26 @@ def remove(ctx, package: str):
         user_manager = UserManager()
         sudo_manager = SudoManager(user_manager)
 
+        # Validate flags - remove_user only works with sudo packages
+        if remove_user and package_type != "sudo":
+            click.echo(
+                "Error: --remove-user can only be used with sudo packages",
+                err=True,
+            )
+            sys.exit(1)
+
         click.echo(f"Removing package: {package}")
 
         if package_type == "user":
             user_manager.remove_ssh_access(username)
+            if delete_account:
+                user_manager.delete_user(username)
         elif package_type == "sudo":
-            sudo_manager.revoke_sudo(username)
+            sudo_manager.revoke_sudo(
+                username,
+                remove_ssh=remove_user or delete_account,
+                delete_user=delete_account,
+            )
 
         click.echo(f"Package {package} removed successfully")
 

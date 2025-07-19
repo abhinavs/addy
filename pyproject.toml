@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "addy"
-version = "1.0.2"
+version = "1.0.3"
 authors = [{ name = "Abhinav Saxena", email = "abhinav@apiclabs.com" }]
 description = "Simple user access management for Linux servers. Like apt install but for people."
 readme = "README.md"
@@ -107,4 +107,3 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
-

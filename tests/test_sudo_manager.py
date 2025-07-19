@@ -349,3 +349,55 @@ class TestSudoManager:
 
                 # Should work without user manager (backward compatibility)
                 sudo_manager.grant_sudo("testuser")
+
+    def test_revoke_sudo_with_remove_ssh(self):
+        """Test revoking sudo with SSH removal."""
+        mock_user_manager = Mock()
+
+        with patch("pathlib.Path.exists", return_value=True), patch(
+            "pathlib.Path.unlink"
+        ) as mock_unlink:
+
+            sudo_manager = SudoManager(mock_user_manager)
+            sudo_manager.revoke_sudo("testuser", remove_ssh=True)
+
+            # Sudo should be revoked
+            mock_unlink.assert_called_once()
+
+            # SSH should be removed
+            mock_user_manager.remove_ssh_access.assert_called_once_with("testuser")
+
+            # User should not be deleted
+            mock_user_manager.delete_user.assert_not_called()
+
+    def test_revoke_sudo_with_delete_user(self):
+        """Test revoking sudo with user deletion."""
+        mock_user_manager = Mock()
+
+        with patch("pathlib.Path.exists", return_value=True), patch(
+            "pathlib.Path.unlink"
+        ) as mock_unlink:
+
+            sudo_manager = SudoManager(mock_user_manager)
+            sudo_manager.revoke_sudo("testuser", delete_user=True)
+
+            # Sudo should be revoked
+            mock_unlink.assert_called_once()
+
+            # SSH should be removed (implied by delete_user=True)
+            mock_user_manager.remove_ssh_access.assert_called_once_with("testuser")
+
+            # User should be deleted
+            mock_user_manager.delete_user.assert_called_once_with("testuser")
+
+    def test_revoke_sudo_no_user_manager(self):
+        """Test revoking sudo without user manager."""
+        with patch("pathlib.Path.exists", return_value=True), patch(
+            "pathlib.Path.unlink"
+        ) as mock_unlink:
+
+            sudo_manager = SudoManager()
+            sudo_manager.revoke_sudo("testuser", remove_ssh=True, delete_user=True)
+
+            # Only sudo should be revoked (no user manager available)
+            mock_unlink.assert_called_once()
